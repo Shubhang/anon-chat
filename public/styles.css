@@ -1,0 +1,45 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+  }
+  
+  #chat {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+  }
+  
+  #messages {
+    flex-grow: 1;
+    list-style: none;
+    margin: 0;
+    overflow-y: scroll;
+    padding: 20px;
+  }
+  
+  li {
+    margin-bottom: 10px;
+  }
+  
+  #message-form {
+    background-color: #f5f5f5;
+    display: flex;
+    padding: 10px;
+  }
+  
+  #message-input {
+    border: none;
+    flex-grow: 1;
+    padding: 10px;
+  }
+  
+  button {
+    background-color: #007bff;
+    border: none;
+    color: white;
+    cursor: pointer;
+    font-weight: bold;
+    padding: 10px 15px;
+  }
+  

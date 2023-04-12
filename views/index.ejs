@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Anonymous Chat</title>
+  <style>
+    /* Add your custom styles here */
+  </style>
+</head>
+<body>
+  <div id="chat">
+    <ul id="messages"></ul>
+    <form id="message-form">
+      <input id="message-input" type="text" placeholder="Type your message" autocomplete="off" />
+      <button type="submit">Send</button>
+    </form>
+  </div>
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io();
+
+    document.getElementById('message-form').addEventListener('submit', (e) => {
+  e.preventDefault();
+  const messageInput = document.getElementById('message-input');
+  const msg = messageInput.value;
+
+  if (msg.trim()) {
+    // Emit the message to the server
+    socket.emit('chat message', msg);
+    
+    // Add the message to the sender's chat window
+    addMessage(msg, 'You');
+    
+    // Clear the input field
+    messageInput.value = '';
+  }
+});
+
+// Update the addMessage function to accept an additional 'sender' parameter
+function addMessage(msg, sender = 'Anonymous') {
+  const messages = document.getElementById('messages');
+  const newMessage = document.createElement('li');
+  newMessage.textContent = `${sender}: ${msg}`;
+  messages.appendChild(newMessage);
+  window.scrollTo(0, document.body.scrollHeight);
+}
+
+socket.on('message history', (msgs) => {
+  msgs.forEach((msg) => {
+    addMessage(msg);
+  });
+});
+
+socket.on('chat message', (msg) => {
+  addMessage(msg);
+});
+
+  </script>
+</body>
+</html>
