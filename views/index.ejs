@@ -9,53 +9,90 @@
   </style>
 </head>
 <body>
+  <div>
+    <select id="channel-selector">
+      <option value="general">General</option>
+      <option value="tech">Tech</option>
+      <option value="random">Random</option>
+      <!-- Add more options for additional channels -->
+    </select>
+  </div>
   <div id="chat">
     <ul id="messages"></ul>
     <form id="message-form">
       <input id="message-input" type="text" placeholder="Type your message" autocomplete="off" />
+      <input id="channel-input" type="hidden" />
       <button type="submit">Send</button>
     </form>
   </div>
   <script src="/socket.io/socket.io.js"></script>
   <script>
     const socket = io();
+    const channelSelector = document.getElementById('channel-selector');
+    const channelInput = document.getElementById('channel-input');
+
+    // Join the initial channel
+    joinChannel(channelSelector.value);
+
+    // Handle channel changes
+    channelSelector.addEventListener('change', (e) => {
+      joinChannel(e.target.value);
+    });
+
+    // Function to join a channel
+    function joinChannel(channel) {
+      socket.emit('join channel', channel);
+      channelInput.value = channel;
+    }
 
     document.getElementById('message-form').addEventListener('submit', (e) => {
-  e.preventDefault();
-  const messageInput = document.getElementById('message-input');
-  const msg = messageInput.value;
+      e.preventDefault();
+      const messageInput = document.getElementById('message-input');
+      const msg = messageInput.value;
 
-  if (msg.trim()) {
-    // Emit the message to the server
-    socket.emit('chat message', msg);
-    
-    // Add the message to the sender's chat window
-    addMessage(msg, 'You');
-    
-    // Clear the input field
-    messageInput.value = '';
-  }
-});
+      if (msg.trim()) {
+        const data = {
+          channel: channelInput.value,
+          msg: msg,
+        };
 
-// Update the addMessage function to accept an additional 'sender' parameter
-function addMessage(msg, sender = 'Anonymous') {
-  const messages = document.getElementById('messages');
-  const newMessage = document.createElement('li');
-  newMessage.textContent = `${sender}: ${msg}`;
-  messages.appendChild(newMessage);
-  window.scrollTo(0, document.body.scrollHeight);
-}
+        // Emit the message to the server
+        socket.emit('chat message', data);
 
-socket.on('message history', (msgs) => {
-  msgs.forEach((msg) => {
-    addMessage(msg);
-  });
-});
+        // Add the message to the sender's chat window
+        addMessage(msg, 'You');
 
-socket.on('chat message', (msg) => {
-  addMessage(msg);
-});
+        // Clear the input field
+        messageInput.value = '';
+      }
+    });
 
+    socket.on('message history', (msgs) => {
+      // Clear the existing messages when switching channels
+      document.getElementById('messages').innerHTML = '';
+
+      msgs.forEach((msg) => {
+        addMessage(msg);
+      });
+    });
+
+    socket.on('chat message', (msg) => {
+      const currentChannel = channelInput.value;
+      addMessage(msg, 'Anonymous', currentChannel);
+    });
+
+    function addMessage(msg, sender = 'Anonymous', currentChannel = null) {
+      // If a currentChannel is provided, only show messages from that channel
+      if (currentChannel && currentChannel !== channelInput.value) {
+        return;
+      }
+
+      const messages = document.getElementById('messages');
+      const newMessage = document.createElement('li');
+      newMessage.textContent = `${sender}: ${msg}`;
+      messages.appendChild(newMessage);
+      window.scrollTo(0, document.body.scrollHeight);
+    }
   </script>
 </body>
 </html>

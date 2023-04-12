@@ -22,29 +22,39 @@ server.listen(port, () => {
 
 const messages = [];
 
+const channels = {
+  general: [],
+  tech: [],
+  random: [],
+  // Add more channels as needed
+};
+
 io.on('connection', (socket) => {
-    console.log('User connected');
-    
-    // Send message history to the new user
-    socket.emit('message history', messages);
-  
-    // Broadcast message to all other clients
-    socket.on('chat message', (msg) => {
-      // Save message to the messages array
-      messages.push(msg);
-  
-      // Limit the number of stored messages to a specific value (e.g., 100)
-      if (messages.length > 100) {
-        messages.shift();
-      }
-  
-      socket.broadcast.emit('chat message', msg);
-    });
-  
-    // Handle user disconnecting
-    socket.on('disconnect', () => {
-      console.log('User disconnected');
-    });
+  console.log('User connected');
+
+  // Handle user joining a channel
+  socket.on('join channel', (channel) => {
+    socket.join(channel);
+    socket.emit('message history', channels[channel]);
   });
-  
+
+  // Broadcast message to all clients in the channel
+  socket.on('chat message', (data) => {
+    const { channel, msg } = data;
+    channels[channel].push(msg);
+
+    // Limit the number of stored messages per channel
+    if (channels[channel].length > 100) {
+      channels[channel].shift();
+    }
+
+    socket.to(channel).emit('chat message', msg);
+  });
+
+  // Handle user disconnecting
+  socket.on('disconnect', () => {
+    console.log('User disconnected');
+  });
+});
+
   
