@@ -29,6 +29,18 @@ const channels = {
   // Add more channels as needed
 };
 
+// Add this function in app.js
+function resetChannels() {
+  channels.general = [];
+  channels.tech = [];
+  channels.random = [];
+  // Reset other channels as needed
+}
+
+// Export the function along with the server
+module.exports = { server, resetChannels };
+
+
 io.on('connection', (socket) => {
   console.log('User connected');
 
